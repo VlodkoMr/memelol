@@ -1,0 +1,7 @@
+build/
+node_modules/
+.env
+.idea/
+neardev/
+out/
+.DS_Store

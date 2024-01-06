@@ -1,0 +1,30 @@
+{
+  "name": "bos-workspace",
+  "version": "0.0.1",
+  "license": "MIT",
+  "scripts": {
+    "test:tools": "jest tools/lib.test.js",
+    "test": "jest",
+    "build:contracts": "(cd contracts && ./build.sh)",
+    "dev:deploy:clear": "yarn build:contracts && ./deploy-dev.sh",
+    "dev:contract:update": "yarn build:contracts && CONTRACT_ID=$(<neardev/dev-account) && near deploy --wasmFile out/coin.wasm --accountId $CONTRACT_ID",
+    "dev": "node tools/dev.js",
+    "deploy": "node tools/deploy.js",
+    "upload": "node tools/upload.js",
+    "pretty": "prettier --write '**/*.{js,jsx,ts,tsx,json,jsonc}'",
+    "build": "npm run pretty -- --log-level warn && node tools/build.js",
+    "clean": "rm -rf build",
+    "test:contract": "npm run build:contracts && cd integration-tests && npm test -- -- \"./out/coin.wasm\"",
+    "near": "near",
+    "bos": "bos"
+  },
+  "devDependencies": {
+    "bos-cli": "^0.3.2",
+    "chokidar": "^3.5.3",
+    "express": "^4.18.2",
+    "jest": "^29.6.2",
+    "mock-fs": "^5.2.0",
+    "near-cli-rs": "^0.4.3",
+    "prettier": "^3.0.1"
+  }
+}

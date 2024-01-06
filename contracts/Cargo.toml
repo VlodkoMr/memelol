@@ -1,0 +1,20 @@
+[package]
+name = "raen"
+version = "1.0.0"
+authors = ["Near Inc <hello@near.org>"]
+edition = "2021"
+
+[dependencies]
+coin = { path = "./coin" }
+near-crypto = "0.14.0"
+
+[workspace]
+members = ["coin"]
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
