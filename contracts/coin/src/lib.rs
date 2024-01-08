@@ -1,4 +1,4 @@
-use near_contract_standards::fungible_token::core::FungibleTokenCore;
+
 use near_contract_standards::fungible_token::metadata::{
     FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC,
 };
@@ -314,7 +314,10 @@ impl Contract {
         let user_premium_box_opened: u32 = self.user_premium_box_opened.get(&owner_id).unwrap_or(0);
         self.user_premium_box_opened.remove(&owner_id);
         self.user_premium_box_opened.insert(&owner_id, &(user_premium_box_opened + 1));
-        self.total_premium_remain -= 1;
+        if self.total_premium_remain > 0 {
+            self.total_premium_remain -= 1;
+        }
+
 
         let user_near_reward = self.user_near_reward.get(&owner_id).unwrap_or(0);
         self.user_near_reward.remove(&owner_id);
@@ -380,60 +383,18 @@ impl Contract {
             leaderboard.pop();
         }
     }
+
+    fn on_tokens_burned(&mut self, account_id: AccountId, amount: Balance) {
+        log!("Account @{} burned {}", account_id, amount);
+    }
 }
 
-// near_contract_standards::impl_fungible_token_core!(Contract, token, on_tokens_burned);
+near_contract_standards::impl_fungible_token_core!(Contract, token, on_tokens_burned);
 near_contract_standards::impl_fungible_token_storage!(Contract, token, on_account_closed);
 
 #[near_bindgen]
 impl FungibleTokenMetadataProvider for Contract {
     fn ft_metadata(&self) -> FungibleTokenMetadata {
         self.metadata.get().unwrap()
-    }
-}
-
-#[near_bindgen]
-impl FungibleTokenCore for Contract {
-    #[payable]
-    fn ft_transfer(
-        &mut self,
-        receiver_id: AccountId,
-        amount: U128,
-        memo: Option<String>,
-    ) {
-        // Left 1% fees
-        let transfer_amount = amount.0 * 99 / 100;
-        let fee_amount = amount.0 - transfer_amount;
-
-        let burn_contract: AccountId = format!("{}.{}", "burn", env::current_account_id()).try_into().unwrap();
-        self.token.internal_transfer(&env::current_account_id(), &burn_contract, fee_amount, None);
-
-        self.token.ft_transfer(receiver_id, transfer_amount.into(), memo)
-    }
-
-    #[payable]
-    fn ft_transfer_call(
-        &mut self,
-        receiver_id: AccountId,
-        amount: U128,
-        memo: Option<String>,
-        msg: String,
-    ) -> PromiseOrValue<U128> {
-        // Left 1% fees
-        let transfer_amount = amount.0 * 99 / 100;
-        let fee_amount = amount.0 - transfer_amount;
-
-        let burn_contract: AccountId = format!("{}.{}", "burn", env::current_account_id()).try_into().unwrap();
-        self.token.internal_transfer(&env::current_account_id(), &burn_contract, fee_amount, None);
-
-        self.token.ft_transfer_call(receiver_id, transfer_amount.into(), memo, msg)
-    }
-
-    fn ft_total_supply(&self) -> U128 {
-        self.token.ft_total_supply()
-    }
-
-    fn ft_balance_of(&self, account_id: AccountId) -> U128 {
-        self.token.ft_balance_of(account_id)
     }
 }
